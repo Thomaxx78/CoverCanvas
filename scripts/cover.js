@@ -1,138 +1,239 @@
 const canvas = document.getElementById('albumCanvas');
 const ctx = canvas.getContext('2d');
 
+const mountainColorInput = document.getElementById('mountainColor');
+const gridColorInput = document.getElementById('gridColor');
+const sunColorInput = document.getElementById('sunColor');
+const textBorderInput = document.getElementById('textColor');
+const starsAmountInput = document.getElementById('stars');
+const SunRadiusInput = document.getElementById('sun');
+const applyColors = document.getElementById('applyColors');
+
+applyColors.addEventListener('click', () => {
+    drawCanvas();
+});
+
 function resizeCanvas() {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    canvas.width = 400;
+    canvas.height = 400;
 }
 
-// Redimensionner au chargement et lors du redimensionnement de la fenêtre
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
+function drawCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#0f0f0f');
+    gradient.addColorStop(0.5, '#0f0f0f');
+    gradient.addColorStop(1, '#0f0f0f');
 
-// Gradient background
-const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-gradient.addColorStop(0, '#12001a');
-gradient.addColorStop(0.5, '#3a003a');
-gradient.addColorStop(1, '#99004d');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-ctx.fillStyle = gradient;
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+    drawStars();
 
-const gridSize = 50;
-const pyramidBaseX = canvas.width / 2;
-const pyramidBaseY = canvas.height / 2 + 100;
-const gridStartDistance = canvas.height / 2;
+    const sunColor = sunColorInput.value;
+    const sunX = canvas.width / 2;
+    const sunY = canvas.height / 1.525;
+    const sunRadius = SunRadiusInput.value;
 
-ctx.strokeStyle = '#ff00ff';
-ctx.lineWidth = 1;
+    const sunGradient = ctx.createRadialGradient(sunX, sunY, sunRadius / 2, sunX, sunY, sunRadius);
+    sunGradient.addColorStop(0, sunColor);
+    sunGradient.addColorStop(1, 'transparent');
 
-function drawGrid() {
-    const numLines = 20;
-    const minSpacing = 5;
-    const maxSpacing = 40;
+    ctx.fillStyle = sunGradient;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
+    ctx.fill();
 
-    let currentY = gridStartDistance;
+    drawMountains();
+    drawGridBackground();
+    drawGrid();
+    drawTextRectangle();
+}
 
-    for (let i = 0; i < numLines; i++) {
-        const t = i / numLines;
-        const spacing = minSpacing + t * (maxSpacing - minSpacing);
-        currentY += spacing;
+function drawStars() {
+    const starCount = starsAmountInput.value;
+    const glowEffect = 2;
 
-        if (currentY > canvas.height) break;
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = glowEffect;
+
+    for (let i = 0; i < starCount; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const size = Math.random() * 2 + 1;
 
         ctx.beginPath();
-        ctx.moveTo(0, currentY);
-        ctx.lineTo(canvas.width, currentY);
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    ctx.shadowBlur = 0;
+}
+
+function drawGridBackground() {
+    const gridHeight = canvas.height * 0.80;
+    const gridWidth = canvas.width;
+
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, gridHeight, gridWidth, canvas.height - gridHeight);
+}
+
+function drawGrid() {
+    const gridHeight = canvas.height * 0.80;
+    const peakSpacing = canvas.width / 20;
+    const glowEffect = 10;
+    const gridColor = gridColorInput.value;
+    
+    ctx.strokeStyle = gridColor;
+    ctx.shadowColor = gridColor;
+    ctx.shadowBlur = glowEffect;
+    ctx.lineWidth = 1;
+
+    const centerX = canvas.width / 2;
+
+    for (let x = 0; x <= canvas.width; x += peakSpacing) {
+        let inclination = 0;
+        const distanceFromCenter = Math.abs(x - centerX);
+
+        if (x === centerX) {
+            inclination = 0;
+        } else {
+            const maxIncline = 150;
+            const factor = distanceFromCenter / centerX;
+            inclination = Math.sign(x - centerX) * (factor * maxIncline);
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(x, gridHeight);
+        ctx.lineTo(x + inclination, canvas.height);
         ctx.stroke();
+    }
+
+    const horizontalStepBase = 15;
+    const maxSpacingIncrease = 10;
+
+    for (let y = gridHeight; y <= canvas.height; y += horizontalStepBase) {
+        const distanceFromBottom = canvas.height - y;
+        const spacingIncrease = (distanceFromBottom / canvas.height) * maxSpacingIncrease;
+
+        const spacing = horizontalStepBase + spacingIncrease;
+
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+
+        y += spacing - horizontalStepBase;
+    }
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(0, gridHeight, canvas.width, canvas.height - gridHeight / 6);
+
+    ctx.shadowBlur = 0;
+}
+
+function drawMountains() {
+    const mountainColors = '#000000';
+    const glowEffect = 10;
+    const minimumBaseHeight = canvas.height * 0.70;
+    let mountainBaseHeight = canvas.height * 0.80;
+
+    mountainBaseHeight = Math.max(mountainBaseHeight, minimumBaseHeight);
+
+    const minPeakHeightLayer1 = 100;
+    const minPeakHeightLayer2 = 70;
+    const minPeakHeightLayer3 = 40;
+
+    ctx.lineWidth = 3;
+
+    for (let i = 0; i < 3; i++) {
+        const peakCount = 5;
+        const peakSpacing = canvas.width / peakCount;
+
+        let peakHeight;
+        let minPeakHeight;
+
+        if (i === 0) {
+            peakHeight = 60;
+            minPeakHeight = minPeakHeightLayer1;
+        } else if (i === 1) {
+            peakHeight = 80;
+            minPeakHeight = minPeakHeightLayer2;
+        } else {
+            peakHeight = 100;
+            minPeakHeight = minPeakHeightLayer3;
+        }
+
+        peakHeight = Math.max(peakHeight, minPeakHeight);
+
+        ctx.strokeStyle = mountainColorInput.value;
+        ctx.shadowColor = mountainColorInput.value;
+        ctx.shadowBlur = glowEffect;
+
+        ctx.fillStyle = mountainColors;
+        ctx.beginPath();
+        ctx.moveTo(0, mountainBaseHeight);
+
+        for (let j = 0; j <= peakCount; j++) {
+            const x = j * peakSpacing;
+            const y = mountainBaseHeight - peakHeight * Math.random();
+            
+            const adjustedY = Math.max(y, mountainBaseHeight - minPeakHeight);
+            
+            ctx.lineTo(x, adjustedY);
+        }
+
+        ctx.lineTo(canvas.width, mountainBaseHeight);
+        ctx.lineTo(canvas.width, canvas.height * 0.85);
+        ctx.lineTo(0, canvas.height * 0.85);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
     }
 }
 
+function drawTextRectangle() {
+    const rectWidth = 200;
+    const rectHeight = 150;
+    const borderRadius = 20;
 
-// Glowing sun
-const sunX = canvas.width / 2;
-const sunY = canvas.height / 5;
-const sunRadius = 150;
+    const rectX = (canvas.width - rectWidth) / 2;
+    const rectY = 20;
 
-const sunGradient = ctx.createRadialGradient(sunX, sunY, sunRadius / 2, sunX, sunY, sunRadius);
-sunGradient.addColorStop(0, 'red');
-sunGradient.addColorStop(1, 'transparent');
-
-ctx.fillStyle = sunGradient;
-ctx.beginPath();
-ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
-ctx.fill();
-
-// 3D Closed Pyramid
-function drawPyramid(x, y, size, color) {
-    // 3D perspective effect
-    const depth = 50; // The amount of depth the pyramid will have
-
-    // Coordinates for 3D effect
-    const topX = x;
-    const topY = y - size / 2;
-    const frontLeftX = x - size;
-    const frontLeftY = y + size / 2;
-    const frontRightX = x + size;
-    const frontRightY = y + size / 2;
-    const backLeftX = x - size + depth;
-    const backLeftY = y + size / 2 + depth;
-    const backRightX = x + size - depth;
-    const backRightY = y + size / 2 + depth;
-
-    // Drawing the 3D pyramid faces (front, left, right, and back faces)
-    const pyramidGradient = ctx.createLinearGradient(x, y, x, y + size);
-    pyramidGradient.addColorStop(0, 'black');
-    pyramidGradient.addColorStop(1, color);
-
-    // Front face
+    ctx.fillStyle = '#0f0f0f';
     ctx.beginPath();
-    ctx.moveTo(topX, topY);
-    ctx.lineTo(frontLeftX, frontLeftY);
-    ctx.lineTo(frontRightX, frontRightY);
+    ctx.moveTo(rectX + borderRadius, rectY);
+    ctx.arcTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + rectHeight, borderRadius);
+    ctx.arcTo(rectX + rectWidth, rectY + rectHeight, rectX, rectY + rectHeight, borderRadius);
+    ctx.arcTo(rectX, rectY + rectHeight, rectX, rectY, borderRadius);
+    ctx.arcTo(rectX, rectY, rectX + rectWidth, rectY, borderRadius);
     ctx.closePath();
-    ctx.fillStyle = pyramidGradient;
     ctx.fill();
-    ctx.strokeStyle = 'black';
+
+    ctx.font = '50px "New Rocker"';
+    ctx.fillStyle = '#000000';
+    ctx.strokeStyle = textBorderInput.value;
     ctx.lineWidth = 2;
-    ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
-    // Left side face
-    ctx.beginPath();
-    ctx.moveTo(topX, topY);
-    ctx.lineTo(frontLeftX, frontLeftY);
-    ctx.lineTo(backLeftX, backLeftY);
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.stroke();
+    const lines = ["DAFT", "PUNK"];
+    const lineHeight = 60;
 
-    // Right side face
-    ctx.beginPath();
-    ctx.moveTo(topX, topY);
-    ctx.lineTo(frontRightX, frontRightY);
-    ctx.lineTo(backRightX, backRightY);
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.stroke();
+    const totalTextHeight = lines.length * lineHeight;
+    const textStartY = rectY + (rectHeight - totalTextHeight) / 2 + lineHeight / 2;
 
-    // Back face (the bottom part that connects the sides)
-    ctx.beginPath();
-    ctx.moveTo(backLeftX, backLeftY);
-    ctx.lineTo(backRightX, backRightY);
-    ctx.lineTo(frontRightX, frontRightY);
-    ctx.lineTo(frontLeftX, frontLeftY);
-    ctx.closePath();
-    ctx.fillStyle = 'black';
-    ctx.fill();
-    ctx.stroke();
+    lines.forEach((line, index) => {
+        const textY = textStartY + index * lineHeight;
+        ctx.strokeText(line, rectX + rectWidth / 2, textY);
+        ctx.fillText(line, rectX + rectWidth / 2, textY);
+    });
 }
 
-// Draw grid and pyramid
-drawGrid();
-const pyramidSize = 150;
-const centerX = canvas.width / 2;
-const centerY = canvas.height / 2;
-drawPyramid(centerX, centerY - 75, pyramidSize, '#00ffff');
+drawCanvas();
