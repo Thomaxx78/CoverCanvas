@@ -1,36 +1,13 @@
 body {
-    margin: 0;
-    height: 100vh;
-    overflow-x: hidden;
-    background-image: linear-gradient(
-        330deg,
-        hsl(344deg 56% 66%) 0%,
-        hsl(328deg 64% 65%) 7%,
-        hsl(313deg 73% 64%) 12%,
-        hsl(297deg 81% 63%) 17%,
-        hsl(281deg 90% 61%) 22%,
-        hsl(266deg 98% 60%) 27%,
-        hsl(263deg 96% 55%) 32%,
-        hsl(260deg 94% 51%) 37%,
-        hsl(258deg 92% 46%) 42%,
-        hsl(255deg 90% 42%) 47%,
-        hsl(252deg 87% 37%) 52%,
-        hsl(253deg 84% 32%) 56%,
-        hsl(254deg 81% 27%) 61%,
-        hsl(255deg 79% 23%) 66%,
-        hsl(257deg 76% 18%) 71%,
-        hsl(257deg 73% 13%) 76%,
-        hsl(257deg 74% 10%) 80%,
-        hsl(258deg 75% 8%) 85%,
-        hsl(256deg 70% 5%) 90%,
-        hsl(258deg 71% 3%) 95%,
-        hsl(0deg 0% 0%) 100%
-      );
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    position: relative;
+  margin: 0;
+  height: 100vh;
+  overflow-x: hidden;
+  background-color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
 }
 
 body::before {
@@ -50,8 +27,13 @@ body::before {
     font-family: "New Rocker", serif;
 }
 
-.rectangle, .carres, .slider-section {
-  z-index: 10;
+.rectangle {
+  z-index: 100000;
+}
+
+.wheel {
+  z-index: -1;
+  pointer-events: none;
 }
 
 .rectangle {
@@ -72,14 +54,16 @@ body::before {
   justify-content: center;
   width: 100%;
   height: 100%;
+  opacity: 0;
+  z-index: 100;
 }
 
 .carre {
   background-color: white;
-  width: 25%;
-  height: 50%;
+  width: 30%;
+  height: auto;
+  aspect-ratio: 1/1;
   border-radius: 12px;
-  opacity: 0;
   aspect-ratio: 1/1;
 }
 
@@ -122,7 +106,7 @@ body::before {
   img {
     width: 100%;
     pointer-events: none;
-    z-index: 999;
+    z-index: 900;
     cursor: pointer;
     position: absolute;
     will-change: transform;
@@ -147,8 +131,86 @@ body::before {
     max-width: 350px;
   }
 
-  canvas {
-    width: 100%;
-    height: 100%;
-    display: none;
-  }
+ .albumCanvas {
+    margin: auto;
+ }
+
+ .controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px;
+}
+.controls label {
+  font-size: 14px;
+}
+
+.text-xl {
+  font-weight: bold;
+}
+
+.rectangle {
+    position: absolute;
+    width: 0;
+    height: 0;
+    background-color: transparent;
+    background-color: white;
+    border: solid 0px white;
+}
+
+.text-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 50px;
+  opacity: 0;
+}
+h1 {
+  font-family: "New Rocker", serif;
+}
+
+.desc-album, .second-text {
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 50px;
+  font-weight: bold;
+  margin-top: 55px;
+}
+
+.skip-button {
+  width: 55px;
+  height: 55PX;
+  border: 4px solid black;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  z-index: 99999;
+}
+
+.skip-img {
+  width: 20px;
+  height: 20px;
+}
+
+.second-text {
+  opacity: 0;
+  height: 0;
+  margin-top: 0;
+}
+
+.controls {
+  opacity: 0;
+}
+#albumCanvas {
+  opacity: 0;
+}
+
+.applyColors {
+  width: fit-content;
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin-top: auto;
+  margin-bottom: 0;
+}
